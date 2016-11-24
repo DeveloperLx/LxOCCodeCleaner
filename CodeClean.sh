@@ -32,13 +32,29 @@ codeClean() {
 	echo ''
 	echo Clean文件：$filepath
 
+    inMultipleLineComment=false
+
 	while read line
 	do
+		# 忽略多行注释
+		if [[ $line =~ '/\*' ]]; then
+    		inMultipleLineComment=true
+   	    fi
+    	if [[ $line =~ '\*/' ]]; then
+    		inMultipleLineComment=false
+    	fi
+    	if [[ inMultipleLineComment ]]; then
+    		echo $line
+    		continue
+    	fi
+
 		# 忽略单行注释
 		if [[ $line =~ '//' ]]; then
 			echo $line
 			continue
 		fi
+
+
 
 		# 忽略import pragma warning 等
 		if [[ $line =~ '#' ]]; then
