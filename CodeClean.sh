@@ -137,6 +137,12 @@ codeClean() {
 			eval $command
 		fi
 
+		# *前添加空格 除去算术计算式
+
+		# *后去掉空格 除去算术计算式
+
+		# 清理=前后的空格
+
 		if [[ $lastLineEndWithLeftBrace = true ]]; then
 			isMatch "$line" "^$" 
 			if [[ $? == 1 ]]; then
