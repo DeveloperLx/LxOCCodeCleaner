@@ -26,48 +26,135 @@ isOCFile() {
 	fi
 }
 
+#返回1表示匹配
+isMatch() {
+	string=$1
+	regex=$2
+
+	command='echo "'$string'" | grep -c "'$regex'"'
+	result=`eval "$command"`
+
+	if [[ $result > 0 ]]; then
+		return 1
+	else
+		return 0
+	fi
+}
+
 codeClean() {
 	filepath=$1
 
 	echo ''
 	echo Clean文件：$filepath
 
-    inMultipleLineComment=false
+	lineNumber=0
+
+    inComment=false
+    lastLineEndWithLeftBrace=false
 
 	while read line
 	do
+		let lineNumber++
+
 		# 忽略多行注释
-		if [[ $line =~ '/\*' ]]; then
-    		inMultipleLineComment=true
+		if [[ $line =~ '/*' ]]; then
+    		inComment=true
    	    fi
-    	if [[ $line =~ '\*/' ]]; then
-    		inMultipleLineComment=false
-    	fi
-    	if [[ inMultipleLineComment ]]; then
-    		echo $line
+    	
+    	if [[ $inComment = true ]]; then
+    		# echo '在多行注释中' "$line"
+   	    	if [[ $line =~ '*/' ]]; then
+    			inComment=false
+    		fi
     		continue
     	fi
 
 		# 忽略单行注释
 		if [[ $line =~ '//' ]]; then
-			echo $line
+			# echo '在单行注释中' "$line"
 			continue
 		fi
-
-
 
 		# 忽略import pragma warning 等
 		if [[ $line =~ '#' ]]; then
-			# echo $line
+			# echo '该行以“#”开头' "$line"
 			continue
 		fi
 
+		# 在+(之间添加空格
+		isMatch "$line" "+("
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/+(/+ (/g' $filepath"
+			eval $command
+		fi
+
+		# 在-(之间添加空格
+		isMatch "$line" "\-("
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/-(/- (/g' $filepath"
+			eval $command
+		fi
+
+		# 行末的{前添加空格
+		isMatch "$line" "[^ ]{$"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/{$/ {/g' $filepath"
+			eval $command
+		fi
+
+		# if(间添加空格
+		isMatch "$line" "if("
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/if(/if (/g' $filepath"
+			eval $command
+		fi
+
+		# }else间添加空格
+		isMatch "$line" "}else"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/}else/} else/g' $filepath"
+			eval $command
+		fi
+
+		# else{间添加空格
+		isMatch "$line" "else{"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/else{/ else{/g' $filepath"
+			eval $command
+		fi
+
+		# 首先清理掉)后的空格
+		isMatch "$line" ") "
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/) /)/g' $filepath"
+			eval $command
+		fi
+
+		# ){间添加空格 ??????
+		isMatch "$line" "){"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/){/) {/g' $filepath"
+			eval $command
+		fi
+
+		if [[ $lastLineEndWithLeftBrace = true ]]; then
+			isMatch "$line" "^$" 
+			if [[ $? == 1 ]]; then
+				# sed 清理空行
+				command="sed -i '' '${lineNumber}d' $filepath"
+				eval $command
+				let lineNumber--
+				continue
+			fi
+		fi
+		isMatch "$line" "{$" 
+		if [[ $? == 1 ]]; then
+			lastLineEndWithLeftBrace=true
+		else
+			lastLineEndWithLeftBrace=false
+		fi
 
 	done < $filepath
-
-	# sed -i "" 's/}else/} else/g' $filepath
-	# sed -i "" 's/if(/if (/g' $filepath
-	# sed -i "" 's/){/) {/g' $filepath
 
 	echo 【清理完毕】
 }
@@ -122,13 +209,3 @@ getFilepath() {
 }
 
 getFilepath
-
-
-
-
-
-
-
-
-
-
