@@ -126,14 +126,38 @@ codeClean() {
 		# 首先清理掉)后的空格
 		isMatch "$line" ") "
 		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/) /)/g' $filepath"
-			eval $command
+			isMatch "$line" ") {"
+			if [[ $? == 0 ]]; then
+				command="sed -i '' '${lineNumber}s/) /)/g' $filepath"
+				eval $command
+			fi
 		fi
 
 		# ){间添加空格 ??????
 		isMatch "$line" "){"
 		if [[ $? == 1 ]]; then
 			command="sed -i '' '${lineNumber}s/){/) {/g' $filepath"
+			eval $command
+		fi
+
+		# 清理多于连续的；
+		isMatch "$line" ";;"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/;;/;/g' $filepath"
+			eval $command
+		fi
+
+		# 清理；前的空格
+		isMatch "$line" " ;"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/ ;/;/g' $filepath"
+			eval $command
+		fi
+
+		# (id)init替换为(instancetype)init
+		isMatch "$line" "(id)init"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/(id)init/(instancetype)init/g' $filepath"
 			eval $command
 		fi
 
@@ -162,7 +186,8 @@ codeClean() {
 
 	done < $filepath
 
-	echo 【清理完毕】
+	echo ————清理完毕
+	echo ""
 }
 
 traverseDir() {
@@ -200,7 +225,6 @@ getFilepath() {
 			if [[ $? = 1 ]]; then
 				codeClean $filepath
 			fi
-			echo ""
 			echo 清理完毕，感谢使用 ^_^ DeveloperLx
 			echo ""
 		;;
