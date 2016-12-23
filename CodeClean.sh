@@ -168,6 +168,27 @@ codeClean() {
 			eval $command
 		fi
 
+		# @property( 加空格
+		isMatch "$line" "@property("
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/@property(/@property (/g' $filepath"
+			eval $command
+		fi
+
+		# 清理@weakify(self)后的;
+		isMatch "$line" "@weakify(self);"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/@weakify(self);/@weakify(self)/g' $filepath"
+			eval $command
+		fi
+
+		# 清理@strongify(self)后的;
+		isMatch "$line" "@strongify(self);"
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/@strongify(self);/@strongify(self)/g' $filepath"
+			eval $command
+		fi
+
 		# (id)init替换为(instancetype)init
 		isMatch "$line" "(id)init"
 		if [[ $? == 1 ]]; then
