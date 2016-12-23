@@ -119,7 +119,21 @@ codeClean() {
 		# else{间添加空格
 		isMatch "$line" "else{"
 		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/else{/ else{/g' $filepath"
+			command="sed -i '' '${lineNumber}s/else{/else {/g' $filepath"
+			eval $command
+		fi
+
+		# 去掉[后的空格
+		isMatch "$line" "[ "
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/[ /[/g' $filepath"
+			eval $command
+		fi
+
+		# 去掉(后的空格
+		isMatch "$line" "( "
+		if [[ $? == 1 ]]; then
+			command="sed -i '' '${lineNumber}s/( /(/g' $filepath"
 			eval $command
 		fi
 
