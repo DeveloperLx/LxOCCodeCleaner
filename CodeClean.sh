@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo ============   规范化您的代码，请按ctrl+c键退出   ============
+echo ============   规范化您的代码（按ctrl+c键可退出）   ============
 echo =================   Develop by DeveloperLx   =================
 
 # 返回 1-文件 0-目录 -1-不存在
@@ -51,8 +51,8 @@ codeClean() {
 	clang-format -i -style "$style" $filepath
 
 	lineNumber=0
-    lastLineEndWithLeftBrace=false
-    lastLineIsEmptyLine=false
+	lastLineEndWithLeftBrace=false
+	lastLineIsEmptyLine=false
 
 	while read line
 	do
@@ -108,7 +108,7 @@ codeClean() {
 
 	done < $filepath
 
-	echo '           '————Clean完毕
+	echo '		'————Clean完毕
 	echo ""
 }
 
