@@ -47,161 +47,18 @@ codeClean() {
 	echo ''
 	echo Clean文件：$filepath
 
-	lineNumber=0
+	style='{Language: Cpp, BasedOnStyle: llvm, AlignTrailingComments: true, AlwaysBreakAfterDefinitionReturnType: All, AlwaysBreakAfterReturnType: AllDefinitions, BreakBeforeBraces: Attach, ColumnLimit: 0, IndentCaseLabels: true, IndentWidth: 4, MaxEmptyLinesToKeep: 2, ObjCBlockIndentWidth: 4, ObjCSpaceAfterProperty: true, ObjCSpaceBeforeProtocolList: true, PointerAlignment: Right, SpaceBeforeAssignmentOperators: true, SpacesBeforeTrailingComments: 1, TabWidth: 4, UseTab: Never}'
+	clang-format -i -style "$style" $filepath
 
-    inComment=false
+	lineNumber=0
     lastLineEndWithLeftBrace=false
+    lastLineIsEmptyLine=false
 
 	while read line
 	do
 		let lineNumber++
 
-		# 忽略多行注释
-		if [[ $line =~ '/*' ]]; then
-    		inComment=true
-   	    fi
-    	
-    	if [[ $inComment = true ]]; then
-    		# echo '在多行注释中' "$line"
-   	    	if [[ $line =~ '*/' ]]; then
-    			inComment=false
-    		fi
-    		continue
-    	fi
-
-		# 忽略单行注释
-		if [[ $line =~ '//' ]]; then
-			# echo '在单行注释中' "$line"
-			continue
-		fi
-
-		# 忽略import pragma warning 等
-		if [[ $line =~ '#' ]]; then
-			# echo '该行以“#”开头' "$line"
-			continue
-		fi
-
-		# 在+(之间添加空格
-		isMatch "$line" "+("
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/+(/+ (/g' $filepath"
-			eval $command
-		fi
-
-		# 在-(之间添加空格
-		isMatch "$line" "\-("
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/-(/- (/g' $filepath"
-			eval $command
-		fi
-
-		# 行末的{前添加空格
-		isMatch "$line" "[^ ]{$"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/{$/ {/g' $filepath"
-			eval $command
-		fi
-
-		# if(间添加空格
-		isMatch "$line" "if("
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/if(/if (/g' $filepath"
-			eval $command
-		fi
-
-		# }else间添加空格
-		isMatch "$line" "}else"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/}else/} else/g' $filepath"
-			eval $command
-		fi
-
-		# else{间添加空格
-		isMatch "$line" "else{"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/else{/else {/g' $filepath"
-			eval $command
-		fi
-
-		# 去掉[后的空格
-		isMatch "$line" "[ "
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/[ /[/g' $filepath"
-			eval $command
-		fi
-
-		# 去掉(后的空格
-		isMatch "$line" "( "
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/( /(/g' $filepath"
-			eval $command
-		fi
-
-		# 首先清理掉)后的空格
-		isMatch "$line" ") "
-		if [[ $? == 1 ]]; then
-			isMatch "$line" ") {"
-			if [[ $? == 0 ]]; then
-				command="sed -i '' '${lineNumber}s/) /)/g' $filepath"
-				eval $command
-			fi
-		fi
-
-		# ){间添加空格 ??????
-		isMatch "$line" "){"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/){/) {/g' $filepath"
-			eval $command
-		fi
-
-		# 清理多于连续的；
-		isMatch "$line" ";;"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/;;/;/g' $filepath"
-			eval $command
-		fi
-
-		# 清理；前的空格
-		isMatch "$line" " ;"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/ ;/;/g' $filepath"
-			eval $command
-		fi
-
-		# @property( 加空格
-		isMatch "$line" "@property("
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/@property(/@property (/g' $filepath"
-			eval $command
-		fi
-
-		# 清理@weakify(self)后的;
-		isMatch "$line" "@weakify(self);"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/@weakify(self);/@weakify(self)/g' $filepath"
-			eval $command
-		fi
-
-		# 清理@strongify(self)后的;
-		isMatch "$line" "@strongify(self);"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/@strongify(self);/@strongify(self)/g' $filepath"
-			eval $command
-		fi
-
-		# (id)init替换为(instancetype)init
-		isMatch "$line" "(id)init"
-		if [[ $? == 1 ]]; then
-			command="sed -i '' '${lineNumber}s/(id)init/(instancetype)init/g' $filepath"
-			eval $command
-		fi
-
-		# *前添加空格 除去算术计算式
-
-		# *后去掉空格 除去算术计算式
-
-		# 清理=前后的空格
-
+		# 删除每个大括号内的语句组首行的空行
 		if [[ $lastLineEndWithLeftBrace = true ]]; then
 			isMatch "$line" "^$" 
 			if [[ $? == 1 ]]; then
@@ -210,7 +67,7 @@ codeClean() {
 				eval $command
 				let lineNumber--
 				continue
-			fi
+			fi		
 		fi
 		isMatch "$line" "{$" 
 		if [[ $? == 1 ]]; then
@@ -219,17 +76,46 @@ codeClean() {
 			lastLineEndWithLeftBrace=false
 		fi
 
+		# 每个方法前都要添加空行
+		if [[ $lastLineIsEmptyLine = false ]]; then
+			# 判断当前行是方法定义
+			isMatch "$line" "^+"
+			if [[ $? == 1 ]]; then
+				# sed 插入空行
+				command="sed -i '' '${lineNumber}{x;p;x;}' $filepath"
+				eval $command
+				let lineNumber++
+				lastLineIsEmptyLine=true
+				continue
+			fi
+			isMatch "$line" "^-"
+			if [[ $? == 1 ]]; then
+				# sed 插入空行
+				command="sed -i '' '${lineNumber}{x;p;x;}' $filepath"
+				eval $command
+				let lineNumber++
+				lastLineIsEmptyLine=true
+				continue
+			fi
+		fi
+
+		isMatch "$line" "^$" 
+		if [[ $? == 1 ]]; then
+			lastLineIsEmptyLine=true
+		else
+			lastLineIsEmptyLine=false
+		fi
+
 	done < $filepath
 
-	echo ————清理完毕
+	echo '           '————Clean完毕
 	echo ""
 }
 
 traverseDir() {
 	dirname=$1
 	filenameList=`ls $dirname`
-	for file in $filenameList
-	do 
+	for file in $filenameList; do
 		filepath=''
 		if [[ ${dirname:-1} = '/' ]]; then
 			filepath=$1$file
@@ -273,4 +159,24 @@ getFilepath() {
 	esac
 }
 
+checkAndInstallHomeBrew() {
+	if ! type "brew" > /dev/null; then
+		echo "监测到您的系统上未安装Homebrew，即将开始为您安装"
+		/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	fi
+}
+
+checkAndInstallClangFormat() {
+	check=""
+	exec 1>&2
+
+	type "clang-format" >/dev/null 2>&1 && check="clang-format"
+	if [ -z "$check" ]; then
+		echo "监测到您的系统上未安装clang-format，即将开始为您安装"
+		checkAndInstallHomeBrew
+		brew install clang-format
+	fi
+}
+
+checkAndInstallClangFormat
 getFilepath
