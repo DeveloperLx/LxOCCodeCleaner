@@ -54,8 +54,7 @@ codeClean() {
 	lineNumber=0
 	lastLineEndWithLeftBrace=false
 
-	while read line
-	do
+	while read line; do
 		let lineNumber++
 
 		# 清理@weakify(self)后的;
