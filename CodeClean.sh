@@ -32,7 +32,7 @@ isMatch() {
 	regex=$2
 
 	command='echo "'$string'" | grep -c "'$regex'"'
-	result=`eval "$command"`
+	result=`eval "$command" 2>&1`
 
 	if [[ $result > 0 ]]; then
 		return 1
@@ -44,19 +44,33 @@ isMatch() {
 codeClean() {
 	filepath=$1
 
-	echo ''
 	echo Clean文件：$filepath
 
-	style='{Language: Cpp, BasedOnStyle: llvm, AlignTrailingComments: true, AlwaysBreakAfterDefinitionReturnType: All, AlwaysBreakAfterReturnType: AllDefinitions, BreakBeforeBraces: Attach, ColumnLimit: 0, IndentCaseLabels: true, IndentWidth: 4, MaxEmptyLinesToKeep: 2, ObjCBlockIndentWidth: 4, ObjCSpaceAfterProperty: true, ObjCSpaceBeforeProtocolList: true, PointerAlignment: Right, SpaceBeforeAssignmentOperators: true, SpacesBeforeTrailingComments: 1, TabWidth: 4, UseTab: Never}'
+	style='{Language: Cpp, BasedOnStyle: llvm, BreakBeforeBraces: Attach, ColumnLimit: 0, IndentCaseLabels: true, IndentWidth: 4, MaxEmptyLinesToKeep: 2, ObjCBlockIndentWidth: 4, ObjCSpaceAfterProperty: true, ObjCSpaceBeforeProtocolList: true, PointerAlignment: Right, SpaceBeforeAssignmentOperators: true, SpacesBeforeTrailingComments: 1, TabWidth: 4, UseTab: Never}'
 	clang-format -i -style "$style" $filepath
+
+	# clang-format -style .style -i $filepath
 
 	lineNumber=0
 	lastLineEndWithLeftBrace=false
-	lastLineIsEmptyLine=false
 
 	while read line
 	do
 		let lineNumber++
+
+		# 清理@weakify(self)后的;
+ 		isMatch "$line" "@weakify(self);"
+ 		if [[ $? == 1 ]]; then
+ 			command="sed -i '' '${lineNumber}s/@weakify(self);/@weakify(self)/g' $filepath"
+ 			eval $command
+ 		fi
+ 
+ 		# 清理@strongify(self)后的;
+ 		isMatch "$line" "@strongify(self);"
+ 		if [[ $? == 1 ]]; then
+ 			command="sed -i '' '${lineNumber}s/@strongify(self);/@strongify(self)/g' $filepath"
+ 			eval $command
+ 		fi
 
 		# 删除每个大括号内的语句组首行的空行
 		if [[ $lastLineEndWithLeftBrace = true ]]; then
@@ -76,40 +90,10 @@ codeClean() {
 			lastLineEndWithLeftBrace=false
 		fi
 
-		# 每个方法前都要添加空行
-		if [[ $lastLineIsEmptyLine = false ]]; then
-			# 判断当前行是方法定义
-			isMatch "$line" "^+"
-			if [[ $? == 1 ]]; then
-				# sed 插入空行
-				command="sed -i '' '${lineNumber}{x;p;x;}' $filepath"
-				eval $command
-				let lineNumber++
-				lastLineIsEmptyLine=true
-				continue
-			fi
-			isMatch "$line" "^-"
-			if [[ $? == 1 ]]; then
-				# sed 插入空行
-				command="sed -i '' '${lineNumber}{x;p;x;}' $filepath"
-				eval $command
-				let lineNumber++
-				lastLineIsEmptyLine=true
-				continue
-			fi
-		fi
-
-		isMatch "$line" "^$" 
-		if [[ $? == 1 ]]; then
-			lastLineIsEmptyLine=true
-		else
-			lastLineIsEmptyLine=false
-		fi
-
 	done < $filepath
 
 	echo '	'————Clean完毕
-	echo ""
+	echo ''
 }
 
 traverseDir() {
