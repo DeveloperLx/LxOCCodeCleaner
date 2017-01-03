@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo ============   规范化您的代码（按ctrl+c键可退出）   ============
+echo ===========   规范化您的代码（按ctrl+c键可退出）   ===========
 echo =================   Develop by DeveloperLx   =================
 
 # 返回 1-文件 0-目录 -1-不存在
@@ -108,7 +108,7 @@ codeClean() {
 
 	done < $filepath
 
-	echo '		'————Clean完毕
+	echo '	'————Clean完毕
 	echo ""
 }
 
@@ -161,7 +161,7 @@ getFilepath() {
 
 checkAndInstallHomeBrew() {
 	if ! type "brew" > /dev/null; then
-		echo "监测到您的系统上未安装Homebrew，即将开始为您安装"
+		echo "检测到您的系统上未安装Homebrew，即将开始为您安装"
 		/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 	fi
 }
@@ -172,7 +172,7 @@ checkAndInstallClangFormat() {
 
 	type "clang-format" >/dev/null 2>&1 && check="clang-format"
 	if [ -z "$check" ]; then
-		echo "监测到您的系统上未安装clang-format，即将开始为您安装"
+		echo "检测到您的系统上未安装clang-format，即将开始为您安装"
 		checkAndInstallHomeBrew
 		brew install clang-format
 	fi
