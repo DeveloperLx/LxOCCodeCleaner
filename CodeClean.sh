@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo ===========   规范化您的代码（按ctrl+c键可退出）   ===========
-echo =================   Develop by DeveloperLx   =================
+echo '	'===========   规范化您的代码（按ctrl+c键可退出）   ===========
+echo '	'=================   Develop by DeveloperLx   =================
 
 # 返回 1-文件 0-目录 -1-不存在
 judgeFilepath() {
@@ -62,7 +62,7 @@ style='{Language: Cpp,
 codeClean() {
 	filepath=$1
 
-	echo Clean文件：$filepath
+	echo →  Clean文件：$filepath
 
 	clang-format -i -style "$style" $filepath
 
@@ -106,7 +106,7 @@ codeClean() {
 
 	done < $filepath
 
-	echo '	'————Clean完毕
+	echo '	'————' '完成
 	echo ''
 }
 
@@ -137,18 +137,18 @@ traverseDir() {
 
 getFilepath() {
 	read -p "👉  输入要清理的文件或目录：" filepath
+	echo ''
 	judgeFilepath $filepath
 	case $? in
 		1)  isOCFile $filepath
 			if [[ $? = 1 ]]; then
 				codeClean $filepath
 			fi
-			echo 清理完毕，感谢使用 ^_^ DeveloperLx
-			echo ""
+			echo 💡'  '清理完毕，感谢使用 ———— DeveloperLx
 		;;
 		0) echo 【清理目录下的文件】
 			traverseDir $filepath
-			echo 清理完毕，感谢使用 ^_^ DeveloperLx
+			echo 💡'  '清理完毕，感谢使用 ———— DeveloperLx
 		;;
 		*) echo 【您输入错误，或文件不存在，请重新输入！！！】
 			getFilepath
