@@ -21,6 +21,8 @@ isOCFile() {
 		return 1
 	elif [[ ${filepath:0-2:2} = '.m' ]]; then
 		return 1
+	elif [[ ${filepath:0-3:3} = '.mm' ]]; then
+		return 1
 	else
 		return 0
 	fi
@@ -41,15 +43,28 @@ isMatch() {
 	fi
 }
 
+style='{Language: Cpp, 
+		BasedOnStyle: llvm, 
+		BreakBeforeBraces: Attach, 
+		ColumnLimit: 0, 
+		IndentCaseLabels: true, 
+		IndentWidth: 4, 
+		MaxEmptyLinesToKeep: 2, 
+		ObjCBlockIndentWidth: 4, 
+		ObjCSpaceAfterProperty: true, 
+		ObjCSpaceBeforeProtocolList: true, 
+		PointerAlignment: Right,
+		SpaceBeforeAssignmentOperators: true, 
+		SpacesBeforeTrailingComments: 1, 
+		TabWidth: 4, 
+		UseTab: Never}'
+
 codeClean() {
 	filepath=$1
 
 	echo Clean文件：$filepath
 
-	style='{Language: Cpp, BasedOnStyle: llvm, BreakBeforeBraces: Attach, ColumnLimit: 0, IndentCaseLabels: true, IndentWidth: 4, MaxEmptyLinesToKeep: 2, ObjCBlockIndentWidth: 4, ObjCSpaceAfterProperty: true, ObjCSpaceBeforeProtocolList: true, PointerAlignment: Right, SpaceBeforeAssignmentOperators: true, SpacesBeforeTrailingComments: 1, TabWidth: 4, UseTab: Never}'
 	clang-format -i -style "$style" $filepath
-
-	# clang-format -style .style -i $filepath
 
 	lineNumber=0
 	lastLineEndWithLeftBrace=false
@@ -71,7 +86,7 @@ codeClean() {
  			eval $command
  		fi
 
-		# 删除每个大括号内的语句组首行的空行
+		# 删除每个大括号内的语句组首的空行
 		if [[ $lastLineEndWithLeftBrace = true ]]; then
 			isMatch "$line" "^$" 
 			if [[ $? == 1 ]]; then
@@ -124,15 +139,14 @@ getFilepath() {
 	read -p "👉  输入要清理的文件或目录：" filepath
 	judgeFilepath $filepath
 	case $? in
-		1) echo 【这是一个文件】
-			isOCFile $filepath
+		1)  isOCFile $filepath
 			if [[ $? = 1 ]]; then
 				codeClean $filepath
 			fi
 			echo 清理完毕，感谢使用 ^_^ DeveloperLx
 			echo ""
 		;;
-		0) echo 【这是一个目录】
+		0) echo 【清理目录下的文件】
 			traverseDir $filepath
 			echo 清理完毕，感谢使用 ^_^ DeveloperLx
 		;;
