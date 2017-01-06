@@ -158,7 +158,7 @@ getFilepath() {
 
 checkAndInstallHomeBrew() {
 	if ! type "brew" > /dev/null; then
-		echo "检测到您的系统上未安装Homebrew，即将开始为您安装"
+		echo ❗️" 检测到您的系统上未安装Homebrew，即将开始为您安装"
 		/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 	fi
 }
@@ -169,7 +169,7 @@ checkAndInstallClangFormat() {
 
 	type "clang-format" >/dev/null 2>&1 && check="clang-format"
 	if [ -z "$check" ]; then
-		echo "检测到您的系统上未安装clang-format，即将开始为您安装"
+		echo ❗️" 检测到您的系统上未安装clang-format，即将开始为您安装"
 		checkAndInstallHomeBrew
 		brew install clang-format
 	fi
