@@ -18,6 +18,18 @@ STYLE='{Language: Cpp,
 
 # 让用户输入路径
 function input_path() {
+	if [[ ! -z $1 ]]; then
+		if [[ -d $1 ]]; then
+			format_dir "$1"
+		elif [[ -f $1 ]]; then
+			format_oc_file "$1"
+		else
+			echo "❌  输入错误，或路径不存在，请重新输入！！！" >&2
+			input_path
+		fi
+		return 0
+	fi
+
 	read -p "👉  输入要清理的OC源码的文件或目录：" path
 
 	if [[ -d "$path" ]]; then
@@ -89,4 +101,4 @@ function check_clang_format() {
 }
 
 check_clang_format
-input_path
+input_path $1
