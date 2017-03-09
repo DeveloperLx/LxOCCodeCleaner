@@ -1,2 +1,2 @@
 # LxOCCodeCleaner
-Clean Objective-C code.
+Standardize Objective-C code.
